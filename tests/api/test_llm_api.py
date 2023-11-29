@@ -27,9 +27,7 @@ api_base_url = api_address()
 def get_running_models(api="/llm_model/list_models"):
     url = api_base_url + api
     r = requests.post(url)
-    if r.status_code == 200:
-        return r.json()["data"]
-    return []
+    return r.json()["data"] if r.status_code == 200 else []
 
 
 def test_running_models(api="/llm_model/list_running_models"):
@@ -57,7 +55,7 @@ def test_change_model(api="/llm_model/change_model"):
     model_workers = get_configured_models()
 
     availabel_new_models = list(set(model_workers) - set(running_models))
-    assert len(availabel_new_models) > 0
+    assert availabel_new_models
     print(availabel_new_models)
 
     local_models = [x for x in running_models if not get_model_worker_config(x).get("online_api")]

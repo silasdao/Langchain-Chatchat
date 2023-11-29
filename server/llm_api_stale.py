@@ -187,10 +187,9 @@ def string_args(args, args_list):
         key = key.split("-")[-1] if re.search("port|host", key) else key
         if not value:
             pass
-        # 1==True ->  True
         elif isinstance(value, bool) and value == True:
             args_str += f" --{key} "
-        elif isinstance(value, list) or isinstance(value, tuple) or isinstance(value, set):
+        elif isinstance(value, (list, tuple, set)):
             value = " ".join(value)
             args_str += f" --{key} {value} "
         else:
@@ -226,7 +225,7 @@ def launch_all(args,
     controller_check_sh = base_check_sh.format(LOG_PATH, "controller", "controller")
     subprocess.run(controller_sh, shell=True, check=True)
     subprocess.run(controller_check_sh, shell=True, check=True)
-    print(f"worker启动时间视设备不同而不同，约需3-10分钟，请耐心等待...")
+    print("worker启动时间视设备不同而不同，约需3-10分钟，请耐心等待...")
     if isinstance(args.model_path_address, str):
         launch_worker(args.model_path_address, args=args, worker_args=worker_args)
     else:

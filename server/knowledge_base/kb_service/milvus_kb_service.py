@@ -78,8 +78,7 @@ class MilvusKBService(KBService):
             doc.metadata.pop(self.milvus._vector_field, None)
 
         ids = self.milvus.add_documents(docs)
-        doc_infos = [{"id": id, "metadata": doc.metadata} for id, doc in zip(ids, docs)]
-        return doc_infos
+        return [{"id": id, "metadata": doc.metadata} for id, doc in zip(ids, docs)]
 
     def do_delete_doc(self, kb_file: KnowledgeFile, **kwargs):
         if self.milvus.col:

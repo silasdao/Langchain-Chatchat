@@ -96,8 +96,7 @@ async def lookup_search_engine(
 ):
     search_engine = SEARCH_ENGINES[search_engine_name]
     results = await run_in_threadpool(search_engine, query, result_len=top_k)
-    docs = search_result2docs(results)
-    return docs
+    return search_result2docs(results)
 
 
 async def search_engine_chat(query: str = Body(..., description="用户输入", examples=["你好"]),
@@ -121,7 +120,7 @@ async def search_engine_chat(query: str = Body(..., description="用户输入", 
         return BaseResponse(code=404, msg=f"未支持搜索引擎 {search_engine_name}")
 
     if search_engine_name == "bing" and not BING_SUBSCRIPTION_KEY:
-        return BaseResponse(code=404, msg=f"要使用Bing搜索引擎，需要设置 `BING_SUBSCRIPTION_KEY`")
+        return BaseResponse(code=404, msg="要使用Bing搜索引擎，需要设置 `BING_SUBSCRIPTION_KEY`")
 
     history = [History.from_data(h) for h in history]
 

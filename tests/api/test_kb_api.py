@@ -36,7 +36,7 @@ def test_delete_kb_before(api="/knowledge_base/delete_knowledge_base"):
     pprint(data)
 
     # check kb not exists anymore
-    url = api_base_url + "/knowledge_base/list_knowledge_bases"
+    url = f"{api_base_url}/knowledge_base/list_knowledge_bases"
     print("\n获取知识库列表：")
     r = requests.get(url)
     data = r.json()
@@ -166,7 +166,7 @@ def test_delete_docs(api="/knowledge_base/delete_docs"):
     assert data["code"] == 200
     assert len(data["data"]["failed_files"]) == 0
 
-    url = api_base_url + "/knowledge_base/search_docs"
+    url = f"{api_base_url}/knowledge_base/search_docs"
     query = "介绍一下langchain-chatchat项目"
     print("\n尝试检索删除后的检索知识库：")
     print(query)
@@ -186,7 +186,7 @@ def test_recreate_vs(api="/knowledge_base/recreate_vector_store"):
         assert data["code"] == 200
         print(data["msg"])
 
-    url = api_base_url + "/knowledge_base/search_docs"
+    url = f"{api_base_url}/knowledge_base/search_docs"
     query = "本项目支持哪些文件格式?"
     print("\n尝试检索重建后的检索知识库：")
     print(query)
@@ -204,7 +204,7 @@ def test_delete_kb_after(api="/knowledge_base/delete_knowledge_base"):
     pprint(data)
 
     # check kb not exists anymore
-    url = api_base_url + "/knowledge_base/list_knowledge_bases"
+    url = f"{api_base_url}/knowledge_base/list_knowledge_bases"
     print("\n获取知识库列表：")
     r = requests.get(url)
     data = r.json()

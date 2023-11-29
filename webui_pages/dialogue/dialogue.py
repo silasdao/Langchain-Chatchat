@@ -45,8 +45,9 @@ def get_default_llm_model(api: ApiRequest) -> (str, bool):
     if LLM_MODEL in running_models:
         return LLM_MODEL, True
 
-    local_models = [k for k, v in running_models.items() if not v.get("online_api")]
-    if local_models:
+    if local_models := [
+        k for k, v in running_models.items() if not v.get("online_api")
+    ]:
         return local_models[0], True
     return list(running_models)[0], False
 
@@ -89,9 +90,7 @@ def dialogue_page(api: ApiRequest):
                 st.session_state["cur_llm_model"] = st.session_state.llm_model
 
         def llm_model_format_func(x):
-            if x in running_models:
-                return f"{x} (Running)"
-            return x
+            return f"{x} (Running)" if x in running_models else x
 
         running_models = list(api.list_running_models())
         running_models += LANGCHAIN_LLM_MODEL.keys()
@@ -115,10 +114,12 @@ def dialogue_page(api: ApiRequest):
                                  on_change=on_llm_change,
                                  key="llm_model",
                                  )
-        if (st.session_state.get("prev_llm_model") != llm_model
-                and not llm_model in config_models.get("online", {})
-                and not llm_model in config_models.get("langchain", {})
-                and llm_model not in running_models):
+        if (
+            st.session_state.get("prev_llm_model") != llm_model
+            and llm_model not in config_models.get("online", {})
+            and llm_model not in config_models.get("langchain", {})
+            and llm_model not in running_models
+        ):
             with st.spinner(f"正在加载模型： {llm_model}，请勿进行操作或刷新页面"):
                 prev_model = st.session_state.get("prev_llm_model")
                 r = api.change_llm_model(prev_model, llm_model)
@@ -217,15 +218,18 @@ def dialogue_page(api: ApiRequest):
 
 
         elif dialogue_mode == "自定义Agent问答":
-            chat_box.ai_say([
-                f"正在思考...",
-                Markdown("...", in_expander=True, title="思考过程", state="complete"),
-
-            ])
+            chat_box.ai_say(
+                [
+                    "正在思考...",
+                    Markdown(
+                        "...", in_expander=True, title="思考过程", state="complete"
+                    ),
+                ]
+            )
             text = ""
             ans = ""
             support_agent = ["Azure-OpenAI", "OpenAI", "Anthropic", "Qwen", "qwen-api", "baichuan-api"]  # 目前支持agent的模型
-            if not any(agent in llm_model for agent in support_agent):
+            if all(agent not in llm_model for agent in support_agent):
                 ans += "正在思考... \n\n <span style='color:red'>该模型并没有进行Agent对齐，请更换支持Agent的模型获得更好的体验！</span>\n\n\n"
                 chat_box.update_msg(ans, element_index=0, streaming=False)
             for d in api.agent_chat(prompt,

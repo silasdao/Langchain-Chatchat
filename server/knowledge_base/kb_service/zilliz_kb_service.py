@@ -73,8 +73,7 @@ class ZillizKBService(KBService):
             doc.metadata.pop(self.zilliz._vector_field, None)
 
         ids = self.zilliz.add_documents(docs)
-        doc_infos = [{"id": id, "metadata": doc.metadata} for id, doc in zip(ids, docs)]
-        return doc_infos
+        return [{"id": id, "metadata": doc.metadata} for id, doc in zip(ids, docs)]
 
     def do_delete_doc(self, kb_file: KnowledgeFile, **kwargs):
         if self.zilliz.col:

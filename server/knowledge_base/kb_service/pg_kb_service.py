@@ -30,9 +30,10 @@ class PGKBService(KBService):
     def get_doc_by_id(self, id: str) -> Optional[Document]:
         with self.pg_vector.connect() as connect:
             stmt = text("SELECT document, cmetadata FROM langchain_pg_embedding WHERE collection_id=:id")
-            results = [Document(page_content=row[0], metadata=row[1]) for row in
-                       connect.execute(stmt, parameters={'id': id}).fetchall()]
-            if len(results) > 0:
+            if results := [
+                Document(page_content=row[0], metadata=row[1])
+                for row in connect.execute(stmt, parameters={'id': id}).fetchall()
+            ]:
                 return results[0]
 
     def do_init(self):
@@ -64,8 +65,7 @@ class PGKBService(KBService):
 
     def do_add_doc(self, docs: List[Document], **kwargs) -> List[Dict]:
         ids = self.pg_vector.add_documents(docs)
-        doc_infos = [{"id": id, "metadata": doc.metadata} for id, doc in zip(ids, docs)]
-        return doc_infos
+        return [{"id": id, "metadata": doc.metadata} for id, doc in zip(ids, docs)]
 
     def do_delete_doc(self, kb_file: KnowledgeFile, **kwargs):
         with self.pg_vector.connect() as connect:

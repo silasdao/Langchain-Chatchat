@@ -138,13 +138,12 @@ class LLMKnowledgeChain(LLMChain):
         run_manager.on_text(llm_output, color="green", verbose=self.verbose)
 
         llm_output = llm_output.strip()
-        text_match = re.search(r"^```text(.*?)```", llm_output, re.DOTALL)
-        if text_match:
+        if text_match := re.search(r"^```text(.*?)```", llm_output, re.DOTALL):
             database = text_match.group(1).strip()
             output = self._evaluate_expression(database, llm_input)
             run_manager.on_text("\nAnswer: ", verbose=self.verbose)
             run_manager.on_text(output, color="yellow", verbose=self.verbose)
-            answer = "Answer: " + output
+            answer = f"Answer: {output}"
         elif llm_output.startswith("Answer:"):
             answer = llm_output
         elif "Answer:" in llm_output:
@@ -160,13 +159,12 @@ class LLMKnowledgeChain(LLMChain):
     ) -> Dict[str, str]:
         await run_manager.on_text(llm_output, color="green", verbose=self.verbose)
         llm_output = llm_output.strip()
-        text_match = re.search(r"^```text(.*?)```", llm_output, re.DOTALL)
-        if text_match:
+        if text_match := re.search(r"^```text(.*?)```", llm_output, re.DOTALL):
             expression = text_match.group(1)
             output = self._evaluate_expression(expression)
             await run_manager.on_text("\nAnswer: ", verbose=self.verbose)
             await run_manager.on_text(output, color="yellow", verbose=self.verbose)
-            answer = "Answer: " + output
+            answer = f"Answer: {output}"
         elif llm_output.startswith("Answer:"):
             answer = llm_output
         elif "Answer:" in llm_output:
@@ -225,8 +223,7 @@ class LLMKnowledgeChain(LLMChain):
 def knowledge_search_once(query: str):
     model = model_container.MODEL
     llm_knowledge = LLMKnowledgeChain.from_llm(model, verbose=True, prompt=PROMPT)
-    ans = llm_knowledge.run(query)
-    return ans
+    return llm_knowledge.run(query)
 
 
 if __name__ == "__main__":

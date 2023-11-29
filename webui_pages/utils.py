@@ -209,7 +209,7 @@ class ApiRequest:
             try:
                 return r.json()
             except Exception as e:
-                msg = "API未能返回正确的JSON。" + str(e)
+                msg = f"API未能返回正确的JSON。{str(e)}"
                 if log_verbose:
                     logger.error(f'{e.__class__.__name__}: {msg}',
                                 exc_info=e if log_verbose else None)
@@ -227,10 +227,7 @@ class ApiRequest:
         if self._use_async:
             return ret_async(response)
         else:
-            if as_json:
-                return value_func(to_json(response))
-            else:
-                return value_func(response)
+            return value_func(to_json(response)) if as_json else value_func(response)
 
     # 服务器信息
     def get_server_configs(self, **kwargs):
@@ -261,7 +258,7 @@ class ApiRequest:
         })
 
         data = msg.dict(exclude_unset=True, exclude_none=True)
-        print(f"received input message:")
+        print("received input message:")
         pprint(data)
 
         response = self.post(
@@ -295,7 +292,7 @@ class ApiRequest:
             "prompt_name": prompt_name,
         }
 
-        print(f"received input message:")
+        print("received input message:")
         pprint(data)
 
         response = self.post("/chat/chat", json=data, stream=True, **kwargs)
@@ -324,7 +321,7 @@ class ApiRequest:
             "prompt_name": prompt_name,
         }
 
-        print(f"received input message:")
+        print("received input message:")
         pprint(data)
 
         response = self.post("/chat/agent_chat", json=data, stream=True)
@@ -359,7 +356,7 @@ class ApiRequest:
             "prompt_name": prompt_name,
         }
 
-        print(f"received input message:")
+        print("received input message:")
         pprint(data)
 
         response = self.post(
@@ -396,7 +393,7 @@ class ApiRequest:
             "prompt_name": prompt_name,
         }
 
-        print(f"received input message:")
+        print("received input message:")
         pprint(data)
 
         response = self.post(
@@ -723,10 +720,7 @@ class ApiRequest:
         向fastchat controller请求切换LLM模型。
         '''
         if not model_name or not new_model_name:
-            return {
-                "code": 500,
-                "msg": f"未指定模型名称"
-            }
+            return {"code": 500, "msg": "未指定模型名称"}
 
         def ret_sync():
             running_models = self.list_running_models()
@@ -794,10 +788,7 @@ class ApiRequest:
             )
             return self._get_response_value(response, as_json=True)
 
-        if self._use_async:
-            return ret_async()
-        else:
-            return ret_sync()
+        return ret_async() if self._use_async else ret_sync()
 
 
 class AsyncApiRequest(ApiRequest):

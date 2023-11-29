@@ -15,7 +15,7 @@ def under_non_alpha_ratio(text: str, threshold: float = 0.5):
         If the proportion of non-alpha characters exceeds this threshold, the function
         returns False
     """
-    if len(text) == 0:
+    if not text:
         return False
 
     alpha_count = len([char for char in text if char.strip() and char.isalpha()])
@@ -45,7 +45,7 @@ def is_possible_title(
     """
 
     # 文本长度为0的话，肯定不是title
-    if len(text) == 0:
+    if not text:
         print("Not a title. Text is empty.")
         return False
 
@@ -74,15 +74,9 @@ def is_possible_title(
         return False
 
     # 开头的字符内应该有数字，默认5个字符内
-    if len(text) < 5:
-        text_5 = text
-    else:
-        text_5 = text[:5]
+    text_5 = text if len(text) < 5 else text[:5]
     alpha_in_text_5 = sum(list(map(lambda x: x.isnumeric(), list(text_5))))
-    if not alpha_in_text_5:
-        return False
-
-    return True
+    return bool(alpha_in_text_5)
 
 
 def zh_title_enhance(docs: Document) -> Document:

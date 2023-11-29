@@ -266,7 +266,7 @@ def MakeFastAPIOffline(
             favicon = f"{root}{static_url}/favicon.png"
             return get_swagger_ui_html(
                 openapi_url=f"{root}{openapi_url}",
-                title=app.title + " - Swagger UI",
+                title=f"{app.title} - Swagger UI",
                 oauth2_redirect_url=swagger_ui_oauth2_redirect_url,
                 swagger_js_url=f"{root}{static_url}/swagger-ui-bundle.js",
                 swagger_css_url=f"{root}{static_url}/swagger-ui.css",
@@ -287,7 +287,7 @@ def MakeFastAPIOffline(
 
             return get_redoc_html(
                 openapi_url=f"{root}{openapi_url}",
-                title=app.title + " - ReDoc",
+                title=f"{app.title} - ReDoc",
                 redoc_js_url=f"{root}{static_url}/redoc.standalone.js",
                 with_google_fonts=False,
                 redoc_favicon_url=favicon,
@@ -383,12 +383,12 @@ def get_model_worker_config(model_name: str = None) -> dict:
 
 
 def get_all_model_worker_configs() -> dict:
-    result = {}
     model_names = set(FSCHAT_MODEL_WORKERS.keys())
-    for name in model_names:
-        if name != "default":
-            result[name] = get_model_worker_config(name)
-    return result
+    return {
+        name: get_model_worker_config(name)
+        for name in model_names
+        if name != "default"
+    }
 
 
 def fschat_controller_address() -> str:
@@ -472,13 +472,13 @@ def set_httpx_config(
     proxies = {}
     if isinstance(proxy, str):
         for n in ["http", "https", "all"]:
-            proxies[n + "_proxy"] = proxy
+            proxies[f"{n}_proxy"] = proxy
     elif isinstance(proxy, dict):
         for n in ["http", "https", "all"]:
             if p := proxy.get(n):
-                proxies[n + "_proxy"] = p
-            elif p := proxy.get(n + "_proxy"):
-                proxies[n + "_proxy"] = p
+                proxies[f"{n}_proxy"] = p
+            elif p := proxy.get(f"{n}_proxy"):
+                proxies[f"{n}_proxy"] = p
 
     for k, v in proxies.items():
         os.environ[k] = v
@@ -579,7 +579,7 @@ def get_httpx_client(
         fschat_openai_api_address(),
     ]:
         host = ":".join(x.split(":")[:2])
-        default_proxies.update({host: None})
+        default_proxies[host] = None
 
     # get proxies from system envionrent
     # proxy not str empty string, None, False, 0, [] or {}
@@ -596,7 +596,7 @@ def get_httpx_client(
     })
     for host in os.environ.get("no_proxy", "").split(","):
         if host := host.strip():
-            default_proxies.update({host: None})
+            default_proxies[host] = None
 
     # merge default proxies with user provided proxies
     if isinstance(proxies, str):
@@ -608,10 +608,7 @@ def get_httpx_client(
     # construct Client
     kwargs.update(timeout=timeout, proxies=default_proxies)
     print(kwargs)
-    if use_async:
-        return httpx.AsyncClient(**kwargs)
-    else:
-        return httpx.Client(**kwargs)
+    return httpx.AsyncClient(**kwargs) if use_async else httpx.Client(**kwargs)
 
 
 def get_server_configs() -> Dict:

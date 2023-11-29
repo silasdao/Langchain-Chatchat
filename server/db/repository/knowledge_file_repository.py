@@ -70,8 +70,7 @@ def count_files_from_db(session, kb_name: str) -> int:
 @with_session
 def list_files_from_db(session, kb_name):
     files = session.query(KnowledgeFileModel).filter_by(kb_name=kb_name).all()
-    docs = [f.file_name for f in files]
-    return docs
+    return [f.file_name for f in files]
 
 
 @with_session
@@ -81,8 +80,11 @@ def add_file_to_db(session,
                 custom_docs: bool = False,
                 doc_infos: List[str] = [], # 形式：[{"id": str, "metadata": dict}, ...]
                 ):
-    kb = session.query(KnowledgeBaseModel).filter_by(kb_name=kb_file.kb_name).first()
-    if kb:
+    if (
+        kb := session.query(KnowledgeBaseModel)
+        .filter_by(kb_name=kb_file.kb_name)
+        .first()
+    ):
         # 如果已经存在该文件，则更新文件信息与版本号
         existing_file: KnowledgeFileModel = (session.query(KnowledgeFileModel)
                                              .filter_by(file_name=kb_file.filename,
@@ -118,15 +120,20 @@ def add_file_to_db(session,
 
 @with_session
 def delete_file_from_db(session, kb_file: KnowledgeFile):
-    existing_file = session.query(KnowledgeFileModel).filter_by(file_name=kb_file.filename,
-                                                                kb_name=kb_file.kb_name).first()
-    if existing_file:
+    if (
+        existing_file := session.query(KnowledgeFileModel)
+        .filter_by(file_name=kb_file.filename, kb_name=kb_file.kb_name)
+        .first()
+    ):
         session.delete(existing_file)
         delete_docs_from_db(kb_name=kb_file.kb_name, file_name=kb_file.filename)
         session.commit()
 
-        kb = session.query(KnowledgeBaseModel).filter_by(kb_name=kb_file.kb_name).first()
-        if kb:
+        if (
+            kb := session.query(KnowledgeBaseModel)
+            .filter_by(kb_name=kb_file.kb_name)
+            .first()
+        ):
             kb.file_count -= 1
             session.commit()
     return True
@@ -136,8 +143,11 @@ def delete_file_from_db(session, kb_file: KnowledgeFile):
 def delete_files_from_db(session, knowledge_base_name: str):
     session.query(KnowledgeFileModel).filter_by(kb_name=knowledge_base_name).delete()
     session.query(FileDocModel).filter_by(kb_name=knowledge_base_name).delete()
-    kb = session.query(KnowledgeBaseModel).filter_by(kb_name=knowledge_base_name).first()
-    if kb:
+    if (
+        kb := session.query(KnowledgeBaseModel)
+        .filter_by(kb_name=knowledge_base_name)
+        .first()
+    ):
         kb.file_count = 0
 
     session.commit()
@@ -148,15 +158,16 @@ def delete_files_from_db(session, knowledge_base_name: str):
 def file_exists_in_db(session, kb_file: KnowledgeFile):
     existing_file = session.query(KnowledgeFileModel).filter_by(file_name=kb_file.filename,
                                                                 kb_name=kb_file.kb_name).first()
-    return True if existing_file else False
+    return bool(existing_file)
 
 
 @with_session
 def get_file_detail(session, kb_name: str, filename: str) -> dict:
-    file: KnowledgeFileModel = (session.query(KnowledgeFileModel)
-                                .filter_by(file_name=filename,
-                                            kb_name=kb_name).first())
-    if file:
+    if file := (
+        session.query(KnowledgeFileModel)
+        .filter_by(file_name=filename, kb_name=kb_name)
+        .first()
+    ):
         return {
             "kb_name": file.kb_name,
             "file_name": file.file_name,

@@ -106,12 +106,12 @@ def test_search_engine_chat(api="/chat/search_engine_chat"):
     url = f"{api_base_url}{api}"
     for se in ["bing", "duckduckgo"]:
         data["search_engine_name"] = se
-        dump_input(data, api + f" by {se}")
+        dump_input(data, f"{api} by {se}")
         response = requests.post(url, json=data, stream=True)
         if se == "bing" and not BING_SUBSCRIPTION_KEY:
             data = response.json()
             assert data["code"] == 404
-            assert data["msg"] == f"要使用Bing搜索引擎，需要设置 `BING_SUBSCRIPTION_KEY`"
+            assert data["msg"] == "要使用Bing搜索引擎，需要设置 `BING_SUBSCRIPTION_KEY`"
 
         print("\n")
         print("=" * 30 + api + f" by {se}  output" + "="*30)

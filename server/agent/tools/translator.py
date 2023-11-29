@@ -31,8 +31,7 @@ PROMPT = PromptTemplate(
 def translate(query: str):
     model = model_container.MODEL
     llm_translate = LLMChain(llm=model, prompt=PROMPT)
-    ans = llm_translate.run(query)
-    return ans
+    return llm_translate.run(query)
 
 if __name__ == "__main__":
     result = translate("Can Love remember the question and the answer? 这句话如何诗意的翻译成中文")

@@ -12,9 +12,7 @@ import pytest
 def test_qianfan(version):
     messages = [{"role": "user", "content": "你好"}]
     print("\n" + version + "\n")
-    i = 1
-    for x in request_qianfan_api(messages, version=version):
+    for i, x in enumerate(request_qianfan_api(messages, version=version), start=1):
         pprint(x)
         assert isinstance(x, dict)
         assert "error_code" not in x
-        i += 1

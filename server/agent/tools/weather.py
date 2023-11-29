@@ -93,8 +93,7 @@ def get_city_info(location, adm, key):
     base_url = 'https://geoapi.qweather.com/v2/city/lookup?'
     params = {'location': location, 'adm': adm, 'key': key}
     response = requests.get(base_url, params=params)
-    data = response.json()
-    return data
+    return response.json()
 
 
 def format_weather_data(data,place):
@@ -116,8 +115,8 @@ def format_weather_data(data,place):
         elif days_diff == 2:
             forecast_date_str = '后天'
         else:
-            forecast_date_str = str(days_diff) + '天后'
-        forecast_time_str = forecast_date_str + ' ' + forecast_time.strftime('%H:%M')
+            forecast_date_str = f'{str(days_diff)}天后'
+        forecast_time_str = f'{forecast_date_str} ' + forecast_time.strftime('%H:%M')
         # 计算预报时间与当前时间的差值
         time_diff = forecast_time - now
         # 将差值转换为小时
@@ -127,11 +126,11 @@ def format_weather_data(data,place):
         elif hours_diff >= 24:
             # 如果超过24小时，转换为天数
             days_diff = hours_diff // 24
-            hours_diff_str = str(int(days_diff)) + '天'
+            hours_diff_str = f'{int(days_diff)}天'
         else:
-            hours_diff_str = str(int(hours_diff)) + '小时'
+            hours_diff_str = f'{int(hours_diff)}小时'
         # 将预报时间和当前时间的差值添加到输出中
-        formatted_data += '预报时间: ' + forecast_time_str + '  距离现在有: ' + hours_diff_str + '\n'
+        formatted_data += f'预报时间: {forecast_time_str}  距离现在有: {hours_diff_str}' + '\n'
         formatted_data += '温度: ' + forecast['temp'] + '°C\n'
         formatted_data += '天气: ' + forecast['text'] + '\n'
         formatted_data += '风向: ' + forecast['windDir'] + '\n'
@@ -169,7 +168,7 @@ def weather(query):
     try:
         city_info = get_city_info(location=location, adm=adm, key=key)
         location_id = city_info['location'][0]['id']
-        place = adm + "市" + location + "区"
+        place = f"{adm}市{location}区"
 
         weather_data = get_weather(key=key, location_id=location_id,place=place)
         return weather_data  + "以上是查询到的天气信息，请你查收\n"
@@ -177,7 +176,7 @@ def weather(query):
         try:
             city_info = get_city_info(location=adm, adm=adm, key=key)
             location_id = city_info['location'][0]['id']
-            place = adm + "市"
+            place = f"{adm}市"
             weather_data = get_weather(key=key, location_id=location_id,place=place)
             return weather_data + "重要提醒：用户提供的市和区中，区的信息不存在，或者出现错别字，因此该信息是关于市的天气，请你查收\n"
         except KeyError:
@@ -240,13 +239,12 @@ class LLMWeatherChain(Chain):
         run_manager.on_text(llm_output, color="green", verbose=self.verbose)
 
         llm_output = llm_output.strip()
-        text_match = re.search(r"^```text(.*?)```", llm_output, re.DOTALL)
-        if text_match:
+        if text_match := re.search(r"^```text(.*?)```", llm_output, re.DOTALL):
             expression = text_match.group(1)
             output = self._evaluate_expression(expression)
             run_manager.on_text("\nAnswer: ", verbose=self.verbose)
             run_manager.on_text(output, color="yellow", verbose=self.verbose)
-            answer = "Answer: " + output
+            answer = f"Answer: {output}"
         elif llm_output.startswith("Answer:"):
             answer = llm_output
         elif "Answer:" in llm_output:
@@ -262,14 +260,12 @@ class LLMWeatherChain(Chain):
     ) -> Dict[str, str]:
         await run_manager.on_text(llm_output, color="green", verbose=self.verbose)
         llm_output = llm_output.strip()
-        text_match = re.search(r"^```text(.*?)```", llm_output, re.DOTALL)
-
-        if text_match:
+        if text_match := re.search(r"^```text(.*?)```", llm_output, re.DOTALL):
             expression = text_match.group(1)
             output = self._evaluate_expression(expression)
             await run_manager.on_text("\nAnswer: ", verbose=self.verbose)
             await run_manager.on_text(output, color="yellow", verbose=self.verbose)
-            answer = "Answer: " + output
+            answer = f"Answer: {output}"
         elif llm_output.startswith("Answer:"):
             answer = llm_output
         elif "Answer:" in llm_output:
@@ -325,8 +321,7 @@ class LLMWeatherChain(Chain):
 def weathercheck(query: str):
     model = model_container.MODEL
     llm_weather = LLMWeatherChain.from_llm(model, verbose=True, prompt=PROMPT)
-    ans = llm_weather.run(query)
-    return ans
+    return llm_weather.run(query)
 
 if __name__ == '__main__':
     result = weathercheck("苏州姑苏区今晚热不热？")

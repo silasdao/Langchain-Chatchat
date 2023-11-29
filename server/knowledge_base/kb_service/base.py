@@ -63,24 +63,23 @@ class KBService(ABC):
         if not os.path.exists(self.doc_path):
             os.makedirs(self.doc_path)
         self.do_create_kb()
-        status = add_kb_to_db(self.kb_name, self.kb_info, self.vs_type(), self.embed_model)
-        return status
+        return add_kb_to_db(
+            self.kb_name, self.kb_info, self.vs_type(), self.embed_model
+        )
 
     def clear_vs(self):
         """
         删除向量库中所有内容
         """
         self.do_clear_vs()
-        status = delete_files_from_db(self.kb_name)
-        return status
+        return delete_files_from_db(self.kb_name)
 
     def drop_kb(self):
         """
         删除知识库
         """
         self.do_drop_kb()
-        status = delete_kb_from_db(self.kb_name)
-        return status
+        return delete_kb_from_db(self.kb_name)
 
     def add_doc(self, kb_file: KnowledgeFile, docs: List[Document] = [], **kwargs):
         """
@@ -98,13 +97,14 @@ class KBService(ABC):
         if docs:
             self.delete_doc(kb_file)
             doc_infos = self.do_add_doc(docs, **kwargs)
-            status = add_file_to_db(kb_file,
-                                    custom_docs=custom_docs,
-                                    docs_count=len(docs),
-                                    doc_infos=doc_infos)
+            return add_file_to_db(
+                kb_file,
+                custom_docs=custom_docs,
+                docs_count=len(docs),
+                doc_infos=doc_infos,
+            )
         else:
-            status = False
-        return status
+            return False
 
     def delete_doc(self, kb_file: KnowledgeFile, delete_content: bool = False, **kwargs):
         """
@@ -121,8 +121,9 @@ class KBService(ABC):
         更新知识库介绍
         """
         self.kb_info = kb_info
-        status = add_kb_to_db(self.kb_name, self.kb_info, self.vs_type(), self.embed_model)
-        return status
+        return add_kb_to_db(
+            self.kb_name, self.kb_info, self.vs_type(), self.embed_model
+        )
 
     def update_doc(self, kb_file: KnowledgeFile, docs: List[Document] = [], **kwargs):
         """
@@ -149,8 +150,7 @@ class KBService(ABC):
                     score_threshold: float = SCORE_THRESHOLD,
                     ):
         embeddings = self._load_embeddings()
-        docs = self.do_search(query, top_k, score_threshold, embeddings)
-        return docs
+        return self.do_search(query, top_k, score_threshold, embeddings)
 
     def get_doc_by_id(self, id: str) -> Optional[Document]:
         return None
@@ -160,8 +160,7 @@ class KBService(ABC):
         通过file_name或metadata检索Document
         '''
         doc_infos = list_docs_from_db(kb_name=self.kb_name, file_name=file_name, metadata=metadata)
-        docs = [self.get_doc_by_id(x["id"]) for x in doc_infos]
-        return docs
+        return [self.get_doc_by_id(x["id"]) for x in doc_infos]
 
     @abstractmethod
     def do_create_kb(self):
@@ -273,10 +272,8 @@ class KBServiceFactory:
 def get_kb_details() -> List[Dict]:
     kbs_in_folder = list_kbs_from_folder()
     kbs_in_db = KBService.list_kbs()
-    result = {}
-
-    for kb in kbs_in_folder:
-        result[kb] = {
+    result = {
+        kb: {
             "kb_name": kb,
             "vs_type": "",
             "kb_info": "",
@@ -286,10 +283,10 @@ def get_kb_details() -> List[Dict]:
             "in_folder": True,
             "in_db": False,
         }
-
+        for kb in kbs_in_folder
+    }
     for kb in kbs_in_db:
-        kb_detail = get_kb_detail(kb)
-        if kb_detail:
+        if kb_detail := get_kb_detail(kb):
             kb_detail["in_db"] = True
             if kb in result:
                 result[kb].update(kb_detail)
@@ -309,10 +306,8 @@ def get_kb_file_details(kb_name: str) -> List[Dict]:
     kb = KBServiceFactory.get_service_by_name(kb_name)
     files_in_folder = list_files_from_folder(kb_name)
     files_in_db = kb.list_files()
-    result = {}
-
-    for doc in files_in_folder:
-        result[doc] = {
+    result = {
+        doc: {
             "kb_name": kb_name,
             "file_name": doc,
             "file_ext": os.path.splitext(doc)[-1],
@@ -324,9 +319,10 @@ def get_kb_file_details(kb_name: str) -> List[Dict]:
             "in_folder": True,
             "in_db": False,
         }
+        for doc in files_in_folder
+    }
     for doc in files_in_db:
-        doc_detail = get_file_detail(kb_name, doc)
-        if doc_detail:
+        if doc_detail := get_file_detail(kb_name, doc):
             doc_detail["in_db"] = True
             if doc in result:
                 result[doc].update(doc_detail)

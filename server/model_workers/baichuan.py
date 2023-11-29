@@ -16,8 +16,7 @@ from configs import TEMPERATURE
 def calculate_md5(input_string):
     md5 = hashlib.md5()
     md5.update(input_string.encode('utf-8'))
-    encrypted = md5.hexdigest()
-    return encrypted
+    return md5.hexdigest()
 
 
 def request_baichuan_api(
@@ -45,7 +44,7 @@ def request_baichuan_api(
     signature = calculate_md5(secret_key + json_data + str(time_stamp))
     headers = {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + api_key,
+        "Authorization": f"Bearer {api_key}",
         "X-BC-Request-Id": "your requestId",
         "X-BC-Timestamp": str(time_stamp),
         "X-BC-Signature": signature,
@@ -57,8 +56,7 @@ def request_baichuan_api(
             for line in response.iter_lines():
                 if not line.strip():
                     continue
-                resp = json.loads(line)
-                yield resp
+                yield json.loads(line)
 
 
 class BaiChuanWorker(ApiModelWorker):

@@ -65,8 +65,7 @@ PROMPT = PromptTemplate(
 def calculate(query: str):
     model = model_container.MODEL
     llm_math = LLMMathChain.from_llm(model, verbose=True, prompt=PROMPT)
-    ans = llm_math.run(query)
-    return ans
+    return llm_math.run(query)
 
 if __name__ == "__main__":
     result = calculate("2的三次方")

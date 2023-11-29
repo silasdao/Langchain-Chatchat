@@ -12,11 +12,9 @@ import pytest
 def test_qianfan(version):
     messages = [{"role": "user", "content": "hello"}]
     print("\n" + version + "\n")
-    i = 1
-    for x in request_volc_api(messages, version=version):
+    for i, x in enumerate(request_volc_api(messages, version=version), start=1):
         print(type(x))
         pprint(x)
         if chunk := x.choice.message.content:
             print(chunk)
         assert x.choice.message
-        i += 1

@@ -75,7 +75,7 @@ def request_qianfan_api(
     if not access_token:
         yield {
             "error_code": 403,
-            "error_msg": f"failed to get access token. have you set the correct api_key and secret key?",
+            "error_msg": "failed to get access token. have you set the correct api_key and secret key?",
         }
 
     url = BASE_URL.format(
@@ -99,8 +99,7 @@ def request_qianfan_api(
                     continue
                 if line.startswith("data: "):
                     line = line[6:]
-                resp = json.loads(line)
-                yield resp
+                yield json.loads(line)
 
 
 class QianFanWorker(ApiModelWorker):

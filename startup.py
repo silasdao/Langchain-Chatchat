@@ -90,7 +90,6 @@ def create_model_worker_app(log_level: str = "INFO", **kwargs) -> FastAPI:
     if worker_class := kwargs.get("langchain_model"): #Langchian支持的模型不用做操作
         from fastchat.serve.base_model_worker import app
         worker = ""
-    # 在线模型API
     elif worker_class := kwargs.get("worker_class"):
         from fastchat.serve.base_model_worker import app
 
@@ -99,7 +98,6 @@ def create_model_worker_app(log_level: str = "INFO", **kwargs) -> FastAPI:
                               worker_addr=args.worker_address)
         # sys.modules["fastchat.serve.base_model_worker"].worker = worker
         sys.modules["fastchat.serve.base_model_worker"].logger.setLevel(log_level)
-    # 本地模型
     else:
         from configs.model_config import VLLM_MODEL_DICT
         if kwargs["model_names"][0] in VLLM_MODEL_DICT and args.infer_turbo == "vllm":
@@ -117,7 +115,6 @@ def create_model_worker_app(log_level: str = "INFO", **kwargs) -> FastAPI:
             args.seed = 0
             args.worker_use_ray = False
             args.pipeline_parallel_size = 1
-            args.tensor_parallel_size = 1
             args.block_size = 16
             args.swap_space = 4  # GiB
             args.gpu_memory_utilization = 0.90
@@ -139,9 +136,7 @@ def create_model_worker_app(log_level: str = "INFO", **kwargs) -> FastAPI:
 
             if args.model_path:
                 args.model = args.model_path
-            if args.num_gpus > 1:
-                args.tensor_parallel_size = args.num_gpus
-
+            args.tensor_parallel_size = max(args.num_gpus, 1)
             for k, v in kwargs.items():
                 setattr(args, k, v)
 
@@ -291,11 +286,11 @@ def run_controller(log_level: str = "INFO", started_event: mp.Event = None):
     # add interface to release and load model worker
     @app.post("/release_worker")
     def release_worker(
-            model_name: str = Body(..., description="要释放模型的名称", samples=["chatglm-6b"]),
-            # worker_address: str = Body(None, description="要释放模型的地址，与名称二选一", samples=[FSCHAT_CONTROLLER_address()]),
-            new_model_name: str = Body(None, description="释放后加载该模型"),
-            keep_origin: bool = Body(False, description="不释放原模型，加载新模型")
-    ) -> Dict:
+                model_name: str = Body(..., description="要释放模型的名称", samples=["chatglm-6b"]),
+                # worker_address: str = Body(None, description="要释放模型的地址，与名称二选一", samples=[FSCHAT_CONTROLLER_address()]),
+                new_model_name: str = Body(None, description="释放后加载该模型"),
+                keep_origin: bool = Body(False, description="不释放原模型，加载新模型")
+        ) -> Dict:
         available_models = app._controller.list_models()
         if new_model_name in available_models:
             msg = f"要切换的LLM模型 {new_model_name} 已经存在"
@@ -319,8 +314,13 @@ def run_controller(log_level: str = "INFO", started_event: mp.Event = None):
             return {"code": 500, "msg": msg}
 
         with get_httpx_client() as client:
-            r = client.post(worker_address + "/release",
-                        json={"new_model_name": new_model_name, "keep_origin": keep_origin})
+            r = client.post(
+                f"{worker_address}/release",
+                json={
+                    "new_model_name": new_model_name,
+                    "keep_origin": keep_origin,
+                },
+            )
             if r.status_code != 200:
                 msg = f"failed to release model: {model_name}"
                 logger.error(msg)
@@ -565,7 +565,7 @@ def dump_server_info(after_start=False, args=None):
 
     if after_start:
         print("\n")
-        print(f"服务端运行信息：")
+        print("服务端运行信息：")
         if args.openai_api:
             print(f"    OpenAI API Server: {fschat_openai_api_address()}")
         if args.api:

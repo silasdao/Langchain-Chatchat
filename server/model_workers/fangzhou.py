@@ -42,9 +42,7 @@ def request_volc_api(
     }
 
     try:
-        resps = maas.stream_chat(req)
-        for resp in resps:
-            yield resp
+        yield from maas.stream_chat(req)
     except MaasException as e:
         print(e)
 

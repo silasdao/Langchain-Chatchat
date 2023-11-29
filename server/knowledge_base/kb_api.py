@@ -19,7 +19,7 @@ def create_kb(knowledge_base_name: str = Body(..., examples=["samples"]),
     # Create selected knowledge base
     if not validate_kb_name(knowledge_base_name):
         return BaseResponse(code=403, msg="Don't attack me")
-    if knowledge_base_name is None or knowledge_base_name.strip() == "":
+    if knowledge_base_name is None or not knowledge_base_name.strip():
         return BaseResponse(code=404, msg="知识库名称不能为空，请重新填写知识库名称")
 
     kb = KBServiceFactory.get_service_by_name(knowledge_base_name)
@@ -53,8 +53,7 @@ def delete_kb(
 
     try:
         status = kb.clear_vs()
-        status = kb.drop_kb()
-        if status:
+        if status := kb.drop_kb():
             return BaseResponse(code=200, msg=f"成功删除知识库 {knowledge_base_name}")
     except Exception as e:
         msg = f"删除知识库时出现意外： {e}"

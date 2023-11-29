@@ -14,10 +14,10 @@ def _split_text_with_regex_from_end(
         if keep_separator:
             # The parentheses in the pattern keep the delimiters in the result.
             _splits = re.split(f"({separator})", text)
-            splits = ["".join(i) for i in zip(_splits[0::2], _splits[1::2])]
+            splits = ["".join(i) for i in zip(_splits[::2], _splits[1::2])]
             if len(_splits) % 2 == 1:
                 splits += _splits[-1:]
-            # splits = [_splits[0]] + splits
+                    # splits = [_splits[0]] + splits
         else:
             splits = re.split(separator, text)
     else:

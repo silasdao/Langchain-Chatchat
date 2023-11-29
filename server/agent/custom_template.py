@@ -38,7 +38,10 @@ class CustomOutputParser(AgentOutputParser):
     def parse(self, llm_output: str) -> AgentFinish | tuple[dict[str, str], str] | AgentAction:
         # Check if agent should finish
         support_agent = ["Azure-OpenAI", "OpenAI", "Anthropic", "Qwen", "qwen-api", "baichuan-api"]  # 目前支持agent的模型
-        if not any(agent in model_container.MODEL for agent in support_agent) and self.begin:
+        if (
+            all(agent not in model_container.MODEL for agent in support_agent)
+            and self.begin
+        ):
             self.begin = False
             stop_words = ["Observation:"]
             min_index = len(llm_output)
@@ -82,12 +85,11 @@ class CustomOutputParser(AgentOutputParser):
         # Return the action and action input
 
         try:
-            ans = AgentAction(
+            return AgentAction(
                 tool=action,
                 tool_input=action_input.strip(" ").strip('"'),
-                log=llm_output
+                log=llm_output,
             )
-            return ans
         except:
             return AgentFinish(
                 return_values={"output": f"调用agent失败: `{llm_output}`"},

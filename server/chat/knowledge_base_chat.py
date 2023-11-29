@@ -41,11 +41,11 @@ async def knowledge_base_chat(query: str = Body(..., description="用户输入",
     history = [History.from_data(h) for h in history]
 
     async def knowledge_base_chat_iterator(query: str,
-                                           top_k: int,
-                                           history: Optional[List[History]],
-                                           model_name: str = LLM_MODEL,
-                                           prompt_name: str = prompt_name,
-                                           ) -> AsyncIterable[str]:
+                                               top_k: int,
+                                               history: Optional[List[History]],
+                                               model_name: str = LLM_MODEL,
+                                               prompt_name: str = prompt_name,
+                                               ) -> AsyncIterable[str]:
         callback = AsyncIteratorCallbackHandler()
         model = get_ChatOpenAI(
             model_name=model_name,
@@ -73,7 +73,7 @@ async def knowledge_base_chat(query: str = Body(..., description="用户输入",
         for inum, doc in enumerate(docs):
             filename = os.path.split(doc.metadata["source"])[-1]
             parameters = urlencode({"knowledge_base_name": knowledge_base_name, "file_name":filename})
-            url = f"/knowledge_base/download_doc?" + parameters
+            url = f"/knowledge_base/download_doc?{parameters}"
             text = f"""出处 [{inum + 1}] [{filename}]({url}) \n\n{doc.page_content}\n\n"""
             source_documents.append(text)
         if stream:

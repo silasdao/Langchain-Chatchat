@@ -28,9 +28,7 @@ import chardet
 
 def validate_kb_name(knowledge_base_id: str) -> bool:
     # 检查是否包含预期外的字符或路径攻击关键字
-    if "../" in knowledge_base_id:
-        return False
-    return True
+    return "../" not in knowledge_base_id
 
 
 def get_kb_path(knowledge_base_name: str):
@@ -150,7 +148,7 @@ def get_loader(loader_name: str, file_path_or_content: Union[str, bytes, io.Stri
     根据loader_name和文件路径或内容返回文档加载器。
     '''
     try:
-        if loader_name in ["RapidOCRPDFLoader", "RapidOCRLoader"]:
+        if loader_name in {"RapidOCRPDFLoader", "RapidOCRLoader"}:
             document_loaders_module = importlib.import_module('document_loaders')
         else:
             document_loaders_module = importlib.import_module('langchain.document_loaders')
@@ -162,28 +160,27 @@ def get_loader(loader_name: str, file_path_or_content: Union[str, bytes, io.Stri
         document_loaders_module = importlib.import_module('langchain.document_loaders')
         DocumentLoader = getattr(document_loaders_module, "UnstructuredFileLoader")
 
-    if loader_name == "UnstructuredFileLoader":
-        loader = DocumentLoader(file_path_or_content, autodetect_encoding=True)
-    elif loader_name == "CSVLoader":
+    if loader_name == "CSVLoader":
         # 自动识别文件编码类型，避免langchain loader 加载文件报编码错误
         with open(file_path_or_content, 'rb') as struct_file:
             encode_detect = chardet.detect(struct_file.read())
-        if encode_detect:
-            loader = DocumentLoader(file_path_or_content, encoding=encode_detect["encoding"])
-        else:
-            loader = DocumentLoader(file_path_or_content, encoding="utf-8")
-
-    elif loader_name == "JSONLoader":
-        loader = DocumentLoader(file_path_or_content, jq_schema=".", text_content=False)
+        return (
+            DocumentLoader(
+                file_path_or_content, encoding=encode_detect["encoding"]
+            )
+            if encode_detect
+            else DocumentLoader(file_path_or_content, encoding="utf-8")
+        )
     elif loader_name == "CustomJSONLoader":
-        loader = DocumentLoader(file_path_or_content, text_content=False)
-    elif loader_name == "UnstructuredMarkdownLoader":
-        loader = DocumentLoader(file_path_or_content, mode="elements")
-    elif loader_name == "UnstructuredHTMLLoader":
-        loader = DocumentLoader(file_path_or_content, mode="elements")
+        return DocumentLoader(file_path_or_content, text_content=False)
+    elif loader_name == "JSONLoader":
+        return DocumentLoader(file_path_or_content, jq_schema=".", text_content=False)
+    elif loader_name == "UnstructuredFileLoader":
+        return DocumentLoader(file_path_or_content, autodetect_encoding=True)
+    elif loader_name in {"UnstructuredMarkdownLoader", "UnstructuredHTMLLoader"}:
+        return DocumentLoader(file_path_or_content, mode="elements")
     else:
-        loader = DocumentLoader(file_path_or_content)
-    return loader
+        return DocumentLoader(file_path_or_content)
 
 
 def make_text_splitter(
@@ -389,8 +386,7 @@ def files2docs_in_thread(
         except Exception as e:
             yield False, (kb_name, filename, str(e))
 
-    for result in run_in_thread_pool(func=file2docs, params=kwargs_list, pool=pool):
-        yield result
+    yield from run_in_thread_pool(func=file2docs, params=kwargs_list, pool=pool)
 
 
 if __name__ == "__main__":

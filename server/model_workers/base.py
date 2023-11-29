@@ -73,8 +73,8 @@ class ApiModelWorker(BaseModelWorker):
         result = []
         user_role = self.conv.roles[0]
         ai_role = self.conv.roles[1]
-        user_start = user_role + ":"
-        ai_start = ai_role + ":"
+        user_start = f"{user_role}:"
+        ai_start = f"{ai_role}:"
         for msg in prompt.split(self.conv.sep)[1:-1]:
             if msg.startswith(user_start):
                 if content := msg[len(user_start):].strip():

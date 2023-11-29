@@ -41,5 +41,4 @@ def get_db() -> SessionLocal:
 
 
 def get_db0() -> SessionLocal:
-    db = SessionLocal()
-    return db
+    return SessionLocal()

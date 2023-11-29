@@ -56,11 +56,7 @@ async def search_knowledge_multiple(queries) -> List[str]:
 
 def search_knowledge(queries) -> str:
     responses = asyncio.run(search_knowledge_multiple(queries))
-    # 输出每个整合的查询结果
-    contents = ""
-    for response in responses:
-        contents += response + "\n\n"
-    return contents
+    return "".join(response + "\n\n" for response in responses)
 
 
 _PROMPT_TEMPLATE = """
@@ -174,9 +170,7 @@ class LLMKnowledgeChain(LLMChain):
         run_manager.on_text(llm_output, color="green", verbose=self.verbose)
 
         llm_output = llm_output.strip()
-        # text_match = re.search(r"^```text(.*?)```", llm_output, re.DOTALL)
-        text_match = re.search(r"```text(.*)", llm_output, re.DOTALL)
-        if text_match:
+        if text_match := re.search(r"```text(.*)", llm_output, re.DOTALL):
             expression = text_match.group(1).strip()
             cleaned_input_str = (expression.replace("\"", "").replace("“", "").
                                  replace("”", "").replace("```", "").strip())
@@ -188,7 +182,7 @@ class LLMKnowledgeChain(LLMChain):
             output = self._evaluate_expression(queries)
             run_manager.on_text("\nAnswer: ", verbose=self.verbose)
             run_manager.on_text(output, color="yellow", verbose=self.verbose)
-            answer = "Answer: " + output
+            answer = f"Answer: {output}"
         elif llm_output.startswith("Answer:"):
             answer = llm_output
         elif "Answer:" in llm_output:
@@ -204,9 +198,7 @@ class LLMKnowledgeChain(LLMChain):
     ) -> Dict[str, str]:
         await run_manager.on_text(llm_output, color="green", verbose=self.verbose)
         llm_output = llm_output.strip()
-        text_match = re.search(r"```text(.*)", llm_output, re.DOTALL)
-        if text_match:
-
+        if text_match := re.search(r"```text(.*)", llm_output, re.DOTALL):
             expression = text_match.group(1).strip()
             cleaned_input_str = (
                 expression.replace("\"", "").replace("“", "").replace("”", "").replace("```", "").strip())
@@ -218,7 +210,7 @@ class LLMKnowledgeChain(LLMChain):
             output = self._evaluate_expression(queries)
             await run_manager.on_text("\nAnswer: ", verbose=self.verbose)
             await run_manager.on_text(output, color="yellow", verbose=self.verbose)
-            answer = "Answer: " + output
+            answer = f"Answer: {output}"
         elif llm_output.startswith("Answer:"):
             answer = llm_output
         elif "Answer:" in llm_output:
@@ -279,8 +271,7 @@ class LLMKnowledgeChain(LLMChain):
 def knowledge_search_more(query: str):
     model = model_container.MODEL
     llm_knowledge = LLMKnowledgeChain.from_llm(model, verbose=True, prompt=PROMPT)
-    ans = llm_knowledge.run(query)
-    return ans
+    return llm_knowledge.run(query)
 
 
 if __name__ == "__main__":

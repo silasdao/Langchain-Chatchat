@@ -34,8 +34,7 @@ class MiniMaxWorker(ApiModelWorker):
 
     def prompt_to_messages(self, prompt: str) -> List[Dict]:
         result = super().prompt_to_messages(prompt)
-        messages = [{"sender_type": x["role"], "text": x["content"]} for x in result]
-        return messages
+        return [{"sender_type": x["role"], "text": x["content"]} for x in result]
 
     def generate_stream_gate(self, params):
         # 按照官网推荐，直接调用abab 5.5模型
@@ -75,8 +74,7 @@ class MiniMaxWorker(ApiModelWorker):
                         data = json.loads(e[6:])
                         if not data.get("usage"):
                             if choices := data.get("choices"):
-                                chunk = choices[0].get("delta", "").strip()
-                                if chunk:
+                                if chunk := choices[0].get("delta", "").strip():
                                     print(chunk)
                                     text += chunk
                                     yield json.dumps({"error_code": 0, "text": text}, ensure_ascii=False).encode() + b"\0"

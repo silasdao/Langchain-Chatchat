@@ -4,15 +4,17 @@ from server.db.session import with_session
 
 @with_session
 def add_kb_to_db(session, kb_name, kb_info, vs_type, embed_model):
-    # 创建知识库实例
-    kb = session.query(KnowledgeBaseModel).filter_by(kb_name=kb_name).first()
-    if not kb:
-        kb = KnowledgeBaseModel(kb_name=kb_name, kb_info=kb_info, vs_type=vs_type, embed_model=embed_model)
-        session.add(kb)
-    else:  # update kb with new vs_type and embed_model
+    if (
+        kb := session.query(KnowledgeBaseModel)
+        .filter_by(kb_name=kb_name)
+        .first()
+    ):
         kb.kb_info = kb_info
         kb.vs_type = vs_type
         kb.embed_model = embed_model
+    else:
+        kb = KnowledgeBaseModel(kb_name=kb_name, kb_info=kb_info, vs_type=vs_type, embed_model=embed_model)
+        session.add(kb)
     return True
 
 
@@ -26,14 +28,16 @@ def list_kbs_from_db(session, min_file_count: int = -1):
 @with_session
 def kb_exists(session, kb_name):
     kb = session.query(KnowledgeBaseModel).filter_by(kb_name=kb_name).first()
-    status = True if kb else False
-    return status
+    return bool(kb)
 
 
 @with_session
 def load_kb_from_db(session, kb_name):
-    kb = session.query(KnowledgeBaseModel).filter_by(kb_name=kb_name).first()
-    if kb:
+    if (
+        kb := session.query(KnowledgeBaseModel)
+        .filter_by(kb_name=kb_name)
+        .first()
+    ):
         kb_name, vs_type, embed_model = kb.kb_name, kb.vs_type, kb.embed_model
     else:
         kb_name, vs_type, embed_model = None, None, None
@@ -42,16 +46,22 @@ def load_kb_from_db(session, kb_name):
 
 @with_session
 def delete_kb_from_db(session, kb_name):
-    kb = session.query(KnowledgeBaseModel).filter_by(kb_name=kb_name).first()
-    if kb:
+    if (
+        kb := session.query(KnowledgeBaseModel)
+        .filter_by(kb_name=kb_name)
+        .first()
+    ):
         session.delete(kb)
     return True
 
 
 @with_session
 def get_kb_detail(session, kb_name: str) -> dict:
-    kb: KnowledgeBaseModel = session.query(KnowledgeBaseModel).filter_by(kb_name=kb_name).first()
-    if kb:
+    if (
+        kb := session.query(KnowledgeBaseModel)
+        .filter_by(kb_name=kb_name)
+        .first()
+    ):
         return {
             "kb_name": kb.kb_name,
             "kb_info": kb.kb_info,

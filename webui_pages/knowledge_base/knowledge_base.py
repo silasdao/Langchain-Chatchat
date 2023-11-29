@@ -120,7 +120,7 @@ def knowledge_base_page(api: ApiRequest):
 
         if submit_create_kb:
             if not kb_name or not kb_name.strip():
-                st.error(f"知识库名称不能为空！")
+                st.error("知识库名称不能为空！")
             elif kb_name in kb_list:
                 st.error(f"名为 {kb_name} 的知识库已经存在！")
             else:

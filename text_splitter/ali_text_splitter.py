@@ -30,5 +30,4 @@ class AliTextSplitter(CharacterTextSplitter):
             model='damo/nlp_bert_document-segmentation_chinese-base',
             device="cpu")
         result = p(documents=text)
-        sent_list = [i for i in result["text"].split("\n\t") if i]
-        return sent_list
+        return [i for i in result["text"].split("\n\t") if i]

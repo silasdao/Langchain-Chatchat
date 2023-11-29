@@ -33,11 +33,11 @@ async def agent_chat(query: str = Body(..., description="用户输入", examples
     history = [History.from_data(h) for h in history]
 
     async def agent_chat_iterator(
-            query: str,
-            history: Optional[List[History]],
-            model_name: str = LLM_MODEL,
-            prompt_name: str = prompt_name,
-    ) -> AsyncIterable[str]:
+                query: str,
+                history: Optional[List[History]],
+                model_name: str = LLM_MODEL,
+                prompt_name: str = prompt_name,
+        ) -> AsyncIterable[str]:
         callback = CustomAsyncIteratorCallbackHandler()
         model = get_ChatOpenAI(
             model_name=model_name,
@@ -94,7 +94,7 @@ async def agent_chat(query: str = Body(..., description="用户输入", examples
                 tools_use = []
                 # Use server-sent-events to stream the response
                 data = json.loads(chunk)
-                if data["status"] == Status.start or data["status"] == Status.complete:
+                if data["status"] in [Status.start, Status.complete]:
                     continue
                 elif data["status"] == Status.error:
                     tools_use.append("\n```\n")
@@ -124,7 +124,7 @@ async def agent_chat(query: str = Body(..., description="用户输入", examples
             async for chunk in callback.aiter():
                 # Use server-sent-events to stream the response
                 data = json.loads(chunk)
-                if data["status"] == Status.start or data["status"] == Status.complete:
+                if data["status"] in [Status.start, Status.complete]:
                     continue
                 if data["status"] == Status.error:
                     answer += "\n```\n"

@@ -5,8 +5,12 @@ import re
 def get_latest_tag():
     output = subprocess.check_output(['git', 'tag'])
     tags = output.decode('utf-8').split('\n')[:-1]
-    latest_tag = sorted(tags, key=lambda t: tuple(map(int, re.match(r'v(\d+)\.(\d+)\.(\d+)', t).groups())))[-1]
-    return latest_tag
+    return sorted(
+        tags,
+        key=lambda t: tuple(
+            map(int, re.match(r'v(\d+)\.(\d+)\.(\d+)', t).groups())
+        ),
+    )[-1]
 
 def update_version_number(latest_tag, increment):
     major, minor, patch = map(int, re.match(r'v(\d+)\.(\d+)\.(\d+)', latest_tag).groups())
@@ -18,8 +22,7 @@ def update_version_number(latest_tag, increment):
         patch = 0
     elif increment == 'Z':
         patch += 1
-    new_version = f"v{major}.{minor}.{patch}"
-    return new_version
+    return f"v{major}.{minor}.{patch}"
 
 def main():
     print("当前最近的Git标签：")

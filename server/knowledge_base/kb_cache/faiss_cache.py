@@ -23,8 +23,7 @@ class ThreadSafeFaiss(ThreadSafeObject):
     def clear(self):
         ret = []
         with self.acquire():
-            ids = list(self._obj.docstore._dict.keys())
-            if ids:
+            if ids := list(self._obj.docstore._dict.keys()):
                 ret = self._obj.delete(ids)
                 assert len(self._obj.docstore._dict) == 0
             logger.info(f"已将向量库 {self.key} 清空")

@@ -14,7 +14,7 @@ def list_running_models(
     try:
         controller_address = controller_address or fschat_controller_address()
         with get_httpx_client() as client:
-            r = client.post(controller_address + "/list_models")
+            r = client.post(f"{controller_address}/list_models")
             models = r.json()["models"]
             data = {m: get_model_config(m).data for m in models}
             return BaseResponse(data=data)
@@ -34,7 +34,7 @@ def list_config_models() -> BaseResponse:
     configs = list_config_llm_models()
     # 删除ONLINE_MODEL配置中的敏感信息
     for config in configs["online"].values():
-        del_keys = set(["worker_class"])
+        del_keys = {"worker_class"}
         for k in config:
             if "key" in k.lower() or "secret" in k.lower():
                 del_keys.add(k)
@@ -53,7 +53,7 @@ def get_model_config(
     '''
     config = get_model_worker_config(model_name=model_name)
     # 删除ONLINE_MODEL配置中的敏感信息
-    del_keys = set(["worker_class"])
+    del_keys = {"worker_class"}
     for k in config:
         if "key" in k.lower() or "secret" in k.lower():
             del_keys.add(k)
@@ -75,7 +75,7 @@ def stop_llm_model(
         controller_address = controller_address or fschat_controller_address()
         with get_httpx_client() as client:
             r = client.post(
-                controller_address + "/release_worker",
+                f"{controller_address}/release_worker",
                 json={"model_name": model_name},
             )
             return r.json()
@@ -99,9 +99,12 @@ def change_llm_model(
         controller_address = controller_address or fschat_controller_address()
         with get_httpx_client() as client:
             r = client.post(
-                controller_address + "/release_worker",
-                json={"model_name": model_name, "new_model_name": new_model_name},
-                timeout=HTTPX_DEFAULT_TIMEOUT, # wait for new worker_model
+                f"{controller_address}/release_worker",
+                json={
+                    "model_name": model_name,
+                    "new_model_name": new_model_name,
+                },
+                timeout=HTTPX_DEFAULT_TIMEOUT,
             )
             return r.json()
     except Exception as e:
